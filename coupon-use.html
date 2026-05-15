@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿠폰 사용하기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --coffee-brown: #8B4513;
+            --warm-cream: #F5F1EB;
+            --golden-yellow: #D4A574;
+            --dark-espresso: #3C2415;
+            --light-foam: #FDFCFA;
+            --accent-green: #2D5016;
+            --error-red: #dc2626;
+            --shadow-soft: rgba(60, 36, 21, 0.1);
+            --shadow-medium: rgba(60, 36, 21, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--light-foam) 100%);
+            min-height: 100vh;
+            color: var(--dark-espresso);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .coupon-container {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 16px 64px var(--shadow-medium);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .coupon-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(212, 165, 116, 0.05) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .coupon-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .coffee-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .coupon-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--coffee-brown);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .coupon-subtitle {
+            color: var(--dark-espresso);
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .discount-display {
+            background: linear-gradient(135deg, var(--golden-yellow), var(--coffee-brown));
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(212, 165, 116, 0.3);
+        }
+        
+        .discount-number {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .discount-text {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .coupon-info {
+            background: var(--light-foam);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: var(--dark-espresso);
+            opacity: 0.7;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: var(--coffee-brown);
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-use {
+            background: var(--accent-green);
+            color: white;
+        }
+        
+        .btn-use:hover {
+            background: #1a3009;
+            transform: translateY(-2px);
+        }
+        
+        .btn-used {
+            background: var(--coffee-brown);
+            color: white;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .btn-invalid {
+            background: var(--error-red);
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .status-message {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: rgba(45, 80, 22, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(45, 80, 22, 0.2);
+        }
+        
+        .status-error {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--error-red);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        
+        .status-used {
+            background: rgba(139, 69, 19, 0.1);
+            color: var(--coffee-brown);
+            border: 1px solid rgba(139, 69, 19, 0.2);
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--golden-yellow);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .admin-link {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--coffee-brown);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .admin-link:hover {
+            background: var(--dark-espresso);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 600px) {
+            .coupon-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .coupon-title {
+                font-size: 2rem;
+            }
+            
+            .discount-number {
+                font-size: 3rem;
+            }
+            
+            .admin-link {
+                position: static;
+                display: block;
+                margin-top: 1rem;
+                text-align: center;
+            }
+        }
+        
+        .used-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--coffee-brown);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .used-overlay.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <a href="cafe-coupon-admin.html" class="admin-link">관리자 페이지</a>
+    
+    <div class="coupon-container">
+        <div class="used-overlay" id="usedOverlay">
+            ✓ 사용 완료
+        </div>
+        
+        <div class="coupon-content">
+            <!-- 로딩 상태 -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>쿠폰 정보를 확인하는 중...</p>
+            </div>
+            
+            <!-- 쿠폰 정보 -->
+            <div id="couponState" style="display: none;">
+                <div class="coffee-icon">☕</div>
+                <h1 class="coupon-title">카페 할인 쿠폰</h1>
+                <p class="coupon-subtitle">특별한 지인을 위한 할인</p>
+                
+                <div class="discount-display">
+                    <div class="discount-number" id="discountNumber">10%</div>
+                    <div class="discount-text">할인 혜택</div>
+                </div>
+                
+                <div class="coupon-info">
+                    <div class="info-row">
+                        <span class="info-label">발행 대상</span>
+                        <span class="info-value" id="friendName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">발행일</span>
+                        <span class="info-value" id="issuedDate">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">쿠폰 번호</span>
+                        <span class="info-value" id="couponId">-</span>
+                    </div>
+                    <div class="info-row" id="memoRow" style="display: none;">
+                        <span class="info-label">메모</span>
+                        <span class="info-value" id="memo">-</span>
+                    </div>
+                </div>
+                
+                <div id="statusMessage"></div>
+                
+                <button id="useButton" class="btn btn-use" onclick="useCoupon()">
+                    쿠폰 사용하기
+                </button>
+                
+                <div id="usedInfo" style="display: none;">
+                    <div class="info-row">
+                        <span class="info-label">사용일시</span>
+                        <span class="info-value" id="usedDate">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 에러 상태 -->
+            <div id="errorState" style="display: none;">
+                <div class="coffee-icon">❌</div>
+                <h1 class="coupon-title">쿠폰을 찾을 수 없습니다</h1>
+                <p class="coupon-subtitle">잘못된 쿠폰 링크이거나 만료된 쿠폰입니다</p>
+                
+                <div class="status-message status-error">
+                    <div id="errorMessage">유효하지 않은 쿠폰입니다.</div>
+                </div>
+                
+                <button class="btn btn-invalid" disabled>
+                    사용할 수 없는 쿠폰
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 설정
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // 여기에 실제 URL 입력
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 여기에 실제 키 입력
+        // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 전역 변수
+        let currentCoupon = null;
+        
+        // DOM 로드 완료 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCoupon();
+        });
+        
+        // 쿠폰 정보 로드
+        async function loadCoupon() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const couponId = urlParams.get('id');
+                
+                if (!couponId) {
+                    showError('쿠폰 ID가 없습니다.');
+                    return;
+                }
+                
+                // Supabase에서 쿠폰 정보 조회 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .select('*')
+                //     .eq('id', couponId)
+                //     .single();
+                
+                // 임시로 로컬 스토리지에서 조회
+                const savedCoupons = localStorage.getItem('cafeCoupons');
+                const coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
+                const coupon = coupons.find(c => c.id === couponId);
+                
+                if (!coupon) {
+                    showError('쿠폰을 찾을 수 없습니다.');
+                    return;
+                }
+                
+                currentCoupon = coupon;
+                showCoupon(coupon);
+                
+            } catch (error) {
+                console.error('쿠폰 로드 에러:', error);
+                showError('쿠폰 정보를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 쿠폰 정보 표시
+        function showCoupon(coupon) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('couponState').style.display = 'block';
+            
+            // 기본 정보 설정
+            document.getElementById('discountNumber').textContent = coupon.discount_rate + '%';
+            document.getElementById('friendName').textContent = coupon.friend_name;
+            document.getElementById('issuedDate').textContent = formatDate(coupon.created_at);
+            document.getElementById('couponId').textContent = coupon.id;
+            
+            // 메모 표시
+            if (coupon.memo) {
+                document.getElementById('memo').textContent = coupon.memo;
+                document.getElementById('memoRow').style.display = 'flex';
+            }
+            
+            // 사용 상태에 따른 UI 업데이트
+            if (coupon.is_used) {
+                showUsedState(coupon);
+            } else {
+                showUnusedState();
+            }
+        }
+        
+        // 미사용 쿠폰 상태
+        function showUnusedState() {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `
+                <div class="status-message status-success">
+                    <strong>✓ 사용 가능한 쿠폰입니다</strong><br>
+                    아래 버튼을 눌러 쿠폰을 사용 처리하세요.
+                </div>
+            `;
+            
+            const button = document.getElementById('useButton');
+            button.className = 'btn btn-use';
+            button.textContent = '쿠폰 사용하기';
+            button.disabled = false;
+            button.onclick = useCoupon;
+        }
+        
+        // 사용된 쿠폰 상태
+        function showUsedState(coupon) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `
+                <div class="status-message status-used">
+                    <strong>이미 사용된 쿠폰입니다</strong><br>
+                    다른 쿠폰을 사용해주세요.
+                </div>
+            `;
+            
+            const button = document.getElementById('useButton');
+            button.className = 'btn btn-used';
+            button.textContent = '사용 완료된 쿠폰';
+            button.disabled = true;
+            button.onclick = null;
+            
+            // 사용 정보 표시
+            if (coupon.used_at) {
+                document.getElementById('usedDate').textContent = formatDate(coupon.used_at);
+                document.getElementById('usedInfo').style.display = 'block';
+            }
+            
+            // 사용 완료 오버레이
+            document.getElementById('usedOverlay').classList.add('show');
+        }
+        
+        // 쿠폰 사용 처리
+        async function useCoupon() {
+            if (!currentCoupon) return;
+            
+            try {
+                // 확인 대화상자
+                if (!confirm(`${currentCoupon.friend_name}님의 ${currentCoupon.discount_rate}% 할인 쿠폰을 사용하시겠습니까?`)) {
+                    return;
+                }
+                
+                // 버튼 비활성화
+                const button = document.getElementById('useButton');
+                button.disabled = true;
+                button.textContent = '처리 중...';
+                
+                // 사용 시간 설정
+                const now = new Date().toISOString();
+                currentCoupon.is_used = true;
+                currentCoupon.used_at = now;
+                
+                // Supabase 업데이트 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .update({ is_used: true, used_at: now })
+                //     .eq('id', currentCoupon.id);
+                
+                // 임시로 로컬 스토리지 업데이트
+                const savedCoupons = localStorage.getItem('cafeCoupons');
+                const coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
+                const index = coupons.findIndex(c => c.id === currentCoupon.id);
+                if (index !== -1) {
+                    coupons[index] = currentCoupon;
+                    localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
+                }
+                
+                // 성공 처리
+                showUsedState(currentCoupon);
+                
+                // 성공 알림
+                setTimeout(() => {
+                    alert(`쿠폰이 성공적으로 사용되었습니다!\n\n할인율: ${currentCoupon.discount_rate}%\n고객: ${currentCoupon.friend_name}`);
+                }, 500);
+                
+            } catch (error) {
+                console.error('쿠폰 사용 에러:', error);
+                alert('쿠폰 사용 처리 중 오류가 발생했습니다.');
+                
+                // 버튼 복원
+                const button = document.getElementById('useButton');
+                button.disabled = false;
+                button.textContent = '쿠폰 사용하기';
+            }
+        }
+        
+        // 에러 상태 표시
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+        
+        // 날짜 포맷팅
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

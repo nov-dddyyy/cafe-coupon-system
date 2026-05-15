@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카페 쿠폰 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --coffee-brown: #8B4513;
+            --warm-cream: #F5F1EB;
+            --golden-yellow: #D4A574;
+            --dark-espresso: #3C2415;
+            --light-foam: #FDFCFA;
+            --accent-green: #2D5016;
+            --shadow-soft: rgba(60, 36, 21, 0.1);
+            --shadow-medium: rgba(60, 36, 21, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--light-foam) 100%);
+            min-height: 100vh;
+            color: var(--dark-espresso);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '☕';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--coffee-brown);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .header p {
+            color: var(--dark-espresso);
+            opacity: 0.7;
+            font-size: 1.1rem;
+        }
+        
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow-soft);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px var(--shadow-medium);
+        }
+        
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--coffee-brown);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-espresso);
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(212, 165, 116, 0.3);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--light-foam);
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--golden-yellow);
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .discount-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .discount-option {
+            padding: 0.75rem;
+            border: 2px solid rgba(212, 165, 116, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--light-foam);
+            font-weight: 500;
+        }
+        
+        .discount-option:hover {
+            border-color: var(--golden-yellow);
+        }
+        
+        .discount-option.selected {
+            background: var(--golden-yellow);
+            border-color: var(--coffee-brown);
+            color: white;
+        }
+        
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: var(--coffee-brown);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--dark-espresso);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1a3009;
+            transform: translateY(-2px);
+        }
+        
+        .coupon-list {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow-soft);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--light-foam);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--coffee-brown);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--dark-espresso);
+            opacity: 0.7;
+        }
+        
+        .coupon-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(212, 165, 116, 0.2);
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .coupon-item:last-child {
+            border-bottom: none;
+        }
+        
+        .coupon-discount {
+            background: var(--golden-yellow);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .coupon-info h4 {
+            margin-bottom: 0.25rem;
+            color: var(--dark-espresso);
+        }
+        
+        .coupon-info p {
+            font-size: 0.875rem;
+            color: var(--dark-espresso);
+            opacity: 0.6;
+        }
+        
+        .coupon-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-unused {
+            background: rgba(45, 80, 22, 0.1);
+            color: var(--accent-green);
+        }
+        
+        .status-used {
+            background: rgba(139, 69, 19, 0.1);
+            color: var(--coffee-brown);
+        }
+        
+        .btn-copy {
+            padding: 0.5rem 1rem;
+            background: var(--light-foam);
+            border: 1px solid var(--golden-yellow);
+            color: var(--coffee-brown);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-copy:hover {
+            background: var(--golden-yellow);
+            color: white;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--accent-green);
+            color: white;
+            border-radius: 8px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 16px var(--shadow-medium);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .discount-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .coupon-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--golden-yellow);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>카페 쿠폰 관리</h1>
+            <p>지인들을 위한 특별한 할인 쿠폰을 만들어보세요</p>
+        </div>
+        
+        <div class="admin-grid">
+            <!-- 쿠폰 발행 -->
+            <div class="admin-card">
+                <div class="card-title">
+                    ✨ 새 쿠폰 발행
+                </div>
+                
+                <form id="couponForm">
+                    <div class="form-group">
+                        <label class="form-label">할인율 선택</label>
+                        <div class="discount-selector">
+                            <div class="discount-option" data-value="5">5%</div>
+                            <div class="discount-option selected" data-value="10">10%</div>
+                            <div class="discount-option" data-value="15">15%</div>
+                            <div class="discount-option" data-value="20">20%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">지인 이름</label>
+                        <input type="text" class="form-input" id="friendName" placeholder="예: 김민수" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">메모 (선택사항)</label>
+                        <textarea class="form-textarea" id="memo" placeholder="예: 회사 동료, 생일 축하"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        쿠폰 발행하기
+                    </button>
+                </form>
+            </div>
+            
+            <!-- 통계 -->
+            <div class="admin-card">
+                <div class="card-title">
+                    📊 쿠폰 통계
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCoupons">0</div>
+                        <div class="stat-label">총 발행</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="usedCoupons">0</div>
+                        <div class="stat-label">사용됨</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="unusedCoupons">0</div>
+                        <div class="stat-label">미사용</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="usageRate">0%</div>
+                        <div class="stat-label">사용률</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">할인율별 사용률</label>
+                        <div id="discountStats">
+                            <!-- 동적으로 채워집니다 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 쿠폰 목록 -->
+        <div class="coupon-list">
+            <div class="card-title" style="margin-bottom: 2rem;">
+                📋 발행된 쿠폰 목록
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">쿠폰 정보를 불러오는 중...</p>
+            </div>
+            
+            <div id="couponListContainer">
+                <!-- 동적으로 채워집니다 -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // 설정
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // 여기에 실제 URL 입력
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 여기에 실제 키 입력
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 전역 변수
+        let selectedDiscount = 10;
+        let coupons = [];
+        
+        // DOM 로드 완료 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            loadCoupons();
+        });
+        
+        // 이벤트 리스너 초기화
+        function initializeEventListeners() {
+            // 할인율 선택
+            document.querySelectorAll('.discount-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.discount-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedDiscount = parseInt(this.dataset.value);
+                });
+            });
+            
+            // 쿠폰 발행 폼
+            document.getElementById('couponForm').addEventListener('submit', handleCouponSubmit);
+        }
+        
+        // 쿠폰 발행 처리
+        async function handleCouponSubmit(e) {
+            e.preventDefault();
+            
+            const friendName = document.getElementById('friendName').value.trim();
+            const memo = document.getElementById('memo').value.trim();
+            
+            if (!friendName) {
+                showToast('지인 이름을 입력해주세요.', 'error');
+                return;
+            }
+            
+            try {
+                const couponId = generateCouponId();
+                const couponData = {
+                    id: couponId,
+                    friend_name: friendName,
+                    memo: memo,
+                    discount_rate: selectedDiscount,
+                    is_used: false,
+                    created_at: new Date().toISOString(),
+                    used_at: null
+                };
+                
+                // Supabase에 저장 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .insert([couponData]);
+                
+                // 임시로 로컬 저장
+                coupons.push(couponData);
+                localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
+                
+                // 쿠폰 URL 생성
+                const couponUrl = `${window.location.origin}/coupon-use.html?id=${couponId}`;
+                
+                // 성공 메시지와 함께 URL 표시
+                showCouponCreated(friendName, selectedDiscount, couponUrl);
+                
+                // 폼 초기화
+                document.getElementById('couponForm').reset();
+                document.getElementById('friendName').value = '';
+                document.getElementById('memo').value = '';
+                
+                // 목록 새로고침
+                loadCoupons();
+                
+            } catch (error) {
+                console.error('쿠폰 발행 에러:', error);
+                showToast('쿠폰 발행 중 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // 쿠폰 ID 생성
+        function generateCouponId() {
+            return 'CAFE' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5).toUpperCase();
+        }
+        
+        // 쿠폰 목록 로드
+        async function loadCoupons() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                // Supabase에서 로드 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .select('*')
+                //     .order('created_at', { ascending: false });
+                
+                // 임시로 로컬 스토리지에서 로드
+                const savedCoupons = localStorage.getItem('cafeCoupons');
+                coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                renderCoupons();
+                updateStats();
+                
+            } catch (error) {
+                console.error('쿠폰 로드 에러:', error);
+                document.getElementById('loading').style.display = 'none';
+                showToast('쿠폰 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // 쿠폰 목록 렌더링
+        function renderCoupons() {
+            const container = document.getElementById('couponListContainer');
+            
+            if (coupons.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--dark-espresso); opacity: 0.6;">
+                        <p>아직 발행된 쿠폰이 없습니다.</p>
+                        <p>첫 번째 쿠폰을 만들어보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = coupons.map(coupon => `
+                <div class="coupon-item">
+                    <div class="coupon-discount">${coupon.discount_rate}%</div>
+                    <div class="coupon-info">
+                        <h4>${coupon.friend_name}</h4>
+                        <p>${coupon.memo || '메모 없음'} • ${formatDate(coupon.created_at)}</p>
+                        ${coupon.is_used ? `<p style="font-size: 0.8rem;">사용일: ${formatDate(coupon.used_at)}</p>` : ''}
+                    </div>
+                    <div class="coupon-status ${coupon.is_used ? 'status-used' : 'status-unused'}">
+                        ${coupon.is_used ? '사용완료' : '미사용'}
+                    </div>
+                    ${!coupon.is_used ? `
+                        <button class="btn-copy" onclick="copyCouponLink('${coupon.id}')">
+                            링크 복사
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // 통계 업데이트
+        function updateStats() {
+            const total = coupons.length;
+            const used = coupons.filter(c => c.is_used).length;
+            const unused = total - used;
+            const usageRate = total > 0 ? Math.round((used / total) * 100) : 0;
+            
+            document.getElementById('totalCoupons').textContent = total;
+            document.getElementById('usedCoupons').textContent = used;
+            document.getElementById('unusedCoupons').textContent = unused;
+            document.getElementById('usageRate').textContent = usageRate + '%';
+            
+            // 할인율별 통계
+            const discountStats = {};
+            [5, 10, 15, 20].forEach(rate => {
+                const rateCoupons = coupons.filter(c => c.discount_rate === rate);
+                const rateUsed = rateCoupons.filter(c => c.is_used).length;
+                const rateTotal = rateCoupons.length;
+                discountStats[rate] = {
+                    total: rateTotal,
+                    used: rateUsed,
+                    rate: rateTotal > 0 ? Math.round((rateUsed / rateTotal) * 100) : 0
+                };
+            });
+            
+            const discountStatsHtml = Object.entries(discountStats).map(([rate, stats]) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--light-foam); border-radius: 8px; margin-bottom: 0.5rem;">
+                    <span>${rate}% 할인</span>
+                    <span style="font-weight: 600;">${stats.used}/${stats.total} (${stats.rate}%)</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('discountStats').innerHTML = discountStatsHtml;
+        }
+        
+        // 쿠폰 링크 복사
+        function copyCouponLink(couponId) {
+            const url = `${window.location.origin}/coupon-use.html?id=${couponId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('쿠폰 링크가 복사되었습니다!');
+            }).catch(() => {
+                // 폴백 방법
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('쿠폰 링크가 복사되었습니다!');
+            });
+        }
+        
+        // 쿠폰 생성 완료 알림
+        function showCouponCreated(friendName, discount, url) {
+            const message = `${friendName}님용 ${discount}% 쿠폰이 발행되었습니다!`;
+            showToast(message);
+            
+            // 자동으로 링크 복사
+            setTimeout(() => {
+                copyCouponLink(url.split('=')[1]);
+            }, 1000);
+        }
+        
+        // 토스트 메시지
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#dc2626' : 'var(--accent-green)';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 날짜 포맷팅
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return '오늘 ' + date.toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            } else if (diffDays === 1) {
+                return '어제';
+            } else if (diffDays < 7) {
+                return `${diffDays}일 전`;
+            } else {
+                return date.toLocaleDateString('ko-KR');
+            }
+        }
+    </script>
+</body>
+</html>
