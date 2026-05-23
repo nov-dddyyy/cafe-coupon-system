@@ -499,9 +499,9 @@
                 };
                 
                 // Supabase에 저장 (실제 연결 시)
-                // const { data, error } = await supabase
-                //     .from('coupons')
-                //     .insert([couponData]);
+                const { data, error } = await supabase
+                    .from('coupons')
+                    .insert([couponData]);
                 
                 // 임시로 로컬 저장
                 coupons.push(couponData);
