@@ -499,13 +499,22 @@
                 };
                 
                 // Supabase에 저장 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .insert([couponData]);
                 const { data, error } = await supabase
                     .from('coupons')
                     .insert([couponData]);
                 
+                if (error) {
+                    console.error('Supabase 에러:', error);
+                    showToast('쿠폰 발행 중 오류가 발생했습니다.', 'error');
+                    return;
+                }
+                
                 // 임시로 로컬 저장
-                coupons.push(couponData);
-                localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
+                // coupons.push(couponData);
+                // localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
                 
                 // 쿠폰 URL 생성
                 const couponUrl = `${window.location.origin}/coupon-use.html?id=${couponId}`;
@@ -538,14 +547,26 @@
                 document.getElementById('loading').style.display = 'block';
                 
                 // Supabase에서 로드 (실제 연결 시)
+                // const { data, error } = await supabase
+                //     .from('coupons')
+                //     .select('*')
+                //     .order('created_at', { ascending: false });
                 const { data, error } = await supabase
-                    .from('coupons')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                .from('coupons')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('쿠폰 로드 에러:', error);
+                    showToast('쿠폰 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+                    return;
+                }
+
+                coupons = data || [];
                 
                 // 임시로 로컬 스토리지에서 로드
-                const savedCoupons = localStorage.getItem('cafeCoupons');
-                coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
+                // const savedCoupons = localStorage.getItem('cafeCoupons');
+                // coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
                 
                 document.getElementById('loading').style.display = 'none';
                 
