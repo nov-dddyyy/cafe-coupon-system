@@ -538,10 +538,10 @@
                 document.getElementById('loading').style.display = 'block';
                 
                 // Supabase에서 로드 (실제 연결 시)
-                // const { data, error } = await supabase
-                //     .from('coupons')
-                //     .select('*')
-                //     .order('created_at', { ascending: false });
+                const { data, error } = await supabase
+                    .from('coupons')
+                    .select('*')
+                    .order('created_at', { ascending: false });
                 
                 // 임시로 로컬 스토리지에서 로드
                 const savedCoupons = localStorage.getItem('cafeCoupons');
