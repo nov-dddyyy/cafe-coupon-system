@@ -447,7 +447,7 @@
         // 설정
         const SUPABASE_URL = 'https://exbzhedywnkkfshantae.supabase.co'; // 여기에 실제 URL 입력
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4YnpoZWR5d25ra2ZzaGFudGFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NDI1NTMsImV4cCI6MjA5NDQxODU1M30.3x30U1uA8tdykcOpcE5xTP1TqSY0dVtl1nJ1Q9uRoeI'; // 여기에 실제 키 입력
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // 전역 변수
         let selectedDiscount = 10;
@@ -502,7 +502,7 @@
                 // const { data, error } = await supabase
                 //     .from('coupons')
                 //     .insert([couponData]);
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('coupons')
                     .insert([couponData]);
                 
@@ -551,7 +551,7 @@
                 //     .from('coupons')
                 //     .select('*')
                 //     .order('created_at', { ascending: false });
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                 .from('coupons')
                 .select('*')
                 .order('created_at', { ascending: false });
