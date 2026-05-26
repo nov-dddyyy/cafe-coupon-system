@@ -242,25 +242,98 @@
             transform: translateY(-2px);
         }
         
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
             .coupon-container {
-                padding: 2rem;
-                margin: 1rem;
+                padding: 2rem 1.5rem;
+                margin: 0.5rem;
+                max-width: 100%;
             }
             
             .coupon-title {
-                font-size: 2rem;
+                font-size: 1.75rem;
+            }
+            
+            .coupon-subtitle {
+                font-size: 1rem;
+            }
+            
+            .discount-display {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
             }
             
             .discount-number {
+                font-size: 2.5rem;
+            }
+            
+            .coupon-info {
+                padding: 1.25rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+                margin-bottom: 1rem;
+            }
+            
+            .info-label {
+                font-size: 0.875rem;
+                opacity: 0.8;
+            }
+            
+            .info-value {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                padding: 1rem;
+                font-size: 1.1rem;
+                min-height: 48px;
+            }
+            
+            .status-message {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .coupon-container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .coffee-icon {
                 font-size: 3rem;
             }
             
-            .admin-link {
-                position: static;
-                display: block;
-                margin-top: 1rem;
-                text-align: center;
+            .coupon-title {
+                font-size: 1.5rem;
+            }
+            
+            .discount-display {
+                padding: 1.25rem;
+            }
+            
+            .discount-number {
+                font-size: 2rem;
+            }
+            
+            .discount-text {
+                font-size: 1rem;
+            }
+            
+            .coupon-info {
+                padding: 1rem;
+            }
+            
+            .info-row {
+                margin-bottom: 0.75rem;
             }
         }
         
