@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>쿠폰 사용하기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="coupon-use.css">
+</head>
+<body>
+   <div class="coupon-container">
+        <div class="used-overlay" id="usedOverlay">
+            ✓ 사용 완료
+        </div>
+
+        <div class="coupon-content">
+            <!-- 로딩 상태 -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>쿠폰 정보를 확인하는 중...</p>
+            </div>
+
+            <!-- 쿠폰 정보 -->
+            <div id="couponState" style="display: none;">
+                <div class="coffee-icon">☕</div>
+                <h1 class="coupon-title">카페 할인 쿠폰</h1>
+                <p class="coupon-subtitle">특별한 지인을 위한 할인</p>
+
+                <div class="discount-display">
+                    <div class="discount-number" id="discountNumber">10%</div>
+                    <div class="discount-text">할인 혜택</div>
+                </div>
+
+                <div class="coupon-info">
+                    <div class="info-row">
+                        <span class="info-label">발행 대상</span>
+                        <span class="info-value" id="friendName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">발행일</span>
+                        <span class="info-value" id="issuedDate">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">쿠폰 번호</span>
+                        <span class="info-value" id="couponId">-</span>
+                    </div>
+                    <div class="info-row" id="memoRow" style="display: none;">
+                        <span class="info-label">메모</span>
+                        <span class="info-value" id="memo">-</span>
+                    </div>
+                </div>
+
+                <div id="statusMessage"></div>
+
+                <button id="useButton" class="btn btn-use" onclick="alert('버튼 작동함!')">
+                    쿠폰 사용하기
+                </button>
+
+                <div id="usedInfo" style="display: none;">
+                    <div class="info-row">
+                        <span class="info-label">사용일시</span>
+                        <span class="info-value" id="usedDate">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 에러 상태 -->
+            <div id="errorState" style="display: none;">
+                <div class="coffee-icon">❌</div>
+                <h1 class="coupon-title">쿠폰을 찾을 수 없습니다</h1>
+                <p class="coupon-subtitle">잘못된 쿠폰 링크이거나 만료된 쿠폰입니다</p>
+
+                <div class="status-message status-error">
+                    <div id="errorMessage">유효하지 않은 쿠폰입니다.</div>
+                </div>
+
+                <button class="btn btn-invalid" disabled>
+                    사용할 수 없는 쿠폰
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="coupon-use.js"></script>
+</body>
+</html>
