@@ -23,32 +23,29 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeEventListeners() {
     // 할인율 선택
     const customInput = document.getElementById('customDiscount');
+    const stepper = document.getElementById('discountStepper');
     document.querySelectorAll('.discount-option').forEach(option => {
         option.addEventListener('click', function() {
             document.querySelectorAll('.discount-option').forEach(o => o.classList.remove('selected'));
             this.classList.add('selected');
 
             if (this.dataset.value === 'custom') {
-                customInput.style.display = 'block';
+                stepper.style.display = 'flex';
                 customInput.focus();
                 selectedDiscount = parseInt(customInput.value) || 0;
             } else {
-                customInput.style.display = 'none';
+                stepper.style.display = 'none';
                 selectedDiscount = parseInt(this.dataset.value);
             }
         });
     });
 
-    // 직접입력 값 반영 + 5단위 실시간 안내
-    customInput.addEventListener('input', function() {
-        selectedDiscount = parseInt(this.value) || 0;
+    // 직접입력 −/+ 스테퍼 (5단위 증감)
+    document.getElementById('discountMinus').addEventListener('click', () => adjustDiscount(-5));
+    document.getElementById('discountPlus').addEventListener('click', () => adjustDiscount(5));
 
-        const hint = document.getElementById('customDiscountHint');
-        const invalid = this.value !== '' &&
-            (selectedDiscount < 5 || selectedDiscount > 100 || selectedDiscount % 5 !== 0);
-        hint.style.display = invalid ? 'flex' : 'none';
-        this.classList.toggle('input-error', invalid);
-    });
+    // 직접입력 값 반영 + 5단위 실시간 안내
+    customInput.addEventListener('input', updateCustomDiscount);
 
     // 쿠폰 발행 폼
     document.getElementById('couponForm').addEventListener('submit', handleCouponSubmit);
@@ -71,6 +68,27 @@ function initializeEventListeners() {
     document.getElementById('searchName').addEventListener('input', doSearch);
     // 할인율 필터 (선택 즉시)
     document.getElementById('filterDiscount').addEventListener('change', doSearch);
+}
+
+// 직접입력 −/+ (5단위, 5~100 범위)
+function adjustDiscount(delta) {
+    const input = document.getElementById('customDiscount');
+    let val = (parseInt(input.value) || 0) + delta;
+    if (val < 5) val = 5;
+    if (val > 100) val = 100;
+    input.value = val;
+    updateCustomDiscount.call(input);
+}
+
+// 직접입력 값/검증/안내 갱신
+function updateCustomDiscount() {
+    selectedDiscount = parseInt(this.value) || 0;
+
+    const hint = document.getElementById('customDiscountHint');
+    const invalid = this.value !== '' &&
+        (selectedDiscount < 5 || selectedDiscount > 100 || selectedDiscount % 5 !== 0);
+    hint.style.display = invalid ? 'flex' : 'none';
+    this.classList.toggle('input-error', invalid);
 }
 
 // 검색/필터 실행 (이름 + 할인율 함께 적용)
@@ -146,8 +164,8 @@ async function handleCouponSubmit(e) {
         });
         const customInput = document.getElementById('customDiscount');
         customInput.value = '';
-        customInput.style.display = 'none';
         customInput.classList.remove('input-error');
+        document.getElementById('discountStepper').style.display = 'none';
         document.getElementById('customDiscountHint').style.display = 'none';
 
         // 목록 새로고침
