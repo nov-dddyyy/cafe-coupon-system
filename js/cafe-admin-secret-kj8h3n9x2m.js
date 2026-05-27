@@ -4,7 +4,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 전역 변수
-let selectedDiscount = 10;
+let selectedDiscount = 0;
+let selectedIssuer = '';
 let coupons = [];
 
 // 목록 검색/필터/페이지네이션 상태
@@ -12,6 +13,7 @@ const PAGE_SIZE = 10;
 let currentPage = 1;
 let searchTerm = '';
 let filterRate = '';
+let filterIssuer = '';
 
 // DOM 로드 완료 후 실행
 document.addEventListener('DOMContentLoaded', function() {
@@ -44,6 +46,15 @@ function initializeEventListeners() {
     document.getElementById('discountMinus').addEventListener('click', () => adjustDiscount(-5));
     document.getElementById('discountPlus').addEventListener('click', () => adjustDiscount(5));
 
+    // 발행인 선택
+    document.querySelectorAll('.issuer-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.issuer-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedIssuer = this.dataset.issuer;
+        });
+    });
+
     // 직접입력 값 반영 + 5단위 실시간 안내
     customInput.addEventListener('input', updateCustomDiscount);
 
@@ -68,6 +79,8 @@ function initializeEventListeners() {
     document.getElementById('searchName').addEventListener('input', doSearch);
     // 할인율 필터 (선택 즉시)
     document.getElementById('filterDiscount').addEventListener('change', doSearch);
+    // 발행인 필터 (선택 즉시)
+    document.getElementById('filterIssuer').addEventListener('change', doSearch);
 }
 
 // 직접입력 −/+ (5단위, 5~100 범위)
@@ -95,6 +108,7 @@ function updateCustomDiscount() {
 function doSearch() {
     searchTerm = document.getElementById('searchName').value.trim();
     filterRate = document.getElementById('filterDiscount').value;
+    filterIssuer = document.getElementById('filterIssuer').value;
     currentPage = 1;
     renderCoupons();
 }
@@ -106,12 +120,22 @@ async function handleCouponSubmit(e) {
     const friendName = document.getElementById('friendName').value.trim();
     const memo = document.getElementById('memo').value.trim();
 
+    if (!selectedIssuer) {
+        showToast('발행인을 선택해주세요.', 'error');
+        return;
+    }
+
     if (!friendName) {
         showToast('지인 이름을 입력해주세요.', 'error');
         return;
     }
 
-    if (!selectedDiscount || selectedDiscount < 5 || selectedDiscount > 100 || selectedDiscount % 5 !== 0) {
+    if (!selectedDiscount) {
+        showToast('할인율을 선택해주세요.', 'error');
+        return;
+    }
+
+    if (selectedDiscount < 5 || selectedDiscount > 100 || selectedDiscount % 5 !== 0) {
         showToast('할인율은 5단위로 입력해주세요 (5~100%).', 'error');
         return;
     }
@@ -123,6 +147,7 @@ async function handleCouponSubmit(e) {
             friend_name: friendName,
             memo: memo,
             discount_rate: selectedDiscount,
+            issued_by: selectedIssuer,
             is_used: false,
             created_at: new Date().toISOString(),
             used_at: null
@@ -157,16 +182,18 @@ async function handleCouponSubmit(e) {
         document.getElementById('friendName').value = '';
         document.getElementById('memo').value = '';
 
-        // 할인율 선택 초기화 (기본 10%)
-        selectedDiscount = 10;
-        document.querySelectorAll('.discount-option').forEach(o => {
-            o.classList.toggle('selected', o.dataset.value === '10');
-        });
+        // 할인율 선택 초기화 (선택 없음)
+        selectedDiscount = 0;
+        document.querySelectorAll('.discount-option').forEach(o => o.classList.remove('selected'));
         const customInput = document.getElementById('customDiscount');
         customInput.value = '';
         customInput.classList.remove('input-error');
         document.getElementById('discountStepper').style.display = 'none';
         document.getElementById('customDiscountHint').style.display = 'none';
+
+        // 발행인 선택 초기화
+        selectedIssuer = '';
+        document.querySelectorAll('.issuer-option').forEach(o => o.classList.remove('selected'));
 
         // 목록 새로고침
         loadCoupons();
@@ -212,6 +239,7 @@ async function loadCoupons() {
         document.getElementById('loading').style.display = 'none';
 
         populateDiscountFilter();
+        populateIssuerFilter();
         renderCoupons();
         updateStats();
 
@@ -234,13 +262,25 @@ function populateDiscountFilter() {
     filterRate = select.value;
 }
 
+// 발행인 필터 드롭다운 채우기 (실제 발행인 기준 동적 생성)
+function populateIssuerFilter() {
+    const select = document.getElementById('filterIssuer');
+    const current = select.value;
+    const issuers = [...new Set(coupons.map(c => c.issued_by).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">전체 발행인</option>' +
+        issuers.map(n => `<option value="${n}">${n}</option>`).join('');
+    select.value = issuers.includes(current) ? current : '';
+    filterIssuer = select.value;
+}
+
 // 검색어·할인율 필터 적용
 function getFilteredCoupons() {
     const term = searchTerm.toLowerCase();
     return coupons.filter(coupon => {
         const matchName = !term || (coupon.friend_name || '').toLowerCase().includes(term);
         const matchRate = !filterRate || String(coupon.discount_rate) === filterRate;
-        return matchName && matchRate;
+        const matchIssuer = !filterIssuer || coupon.issued_by === filterIssuer;
+        return matchName && matchRate && matchIssuer;
     });
 }
 
@@ -280,20 +320,20 @@ function renderCoupons() {
 
     container.innerHTML = pageItems.map(coupon => `
         <div class="coupon-item">
-            <div class="coupon-discount">${coupon.discount_rate}%</div>
-            <div class="coupon-info">
-                <h4>${coupon.friend_name}${coupon.memo ? `<span class="name-memo">${coupon.memo}</span>` : ''}</h4>
-                <p class="coupon-dates">
-                    <span class="date-item"><span class="date-label">발행</span>${formatDate(coupon.created_at)}</span>
-                    ${coupon.is_used ? `<span class="date-item date-used"><span class="date-label">사용</span>${formatDate(coupon.used_at)}</span>` : ''}
-                </p>
+            <div class="coupon-body">
+                <div class="coupon-head-row">
+                    <span class="coupon-discount">${coupon.discount_rate}%</span>
+                    <span class="coupon-name">${coupon.friend_name}</span>
+                </div>
+                ${coupon.memo ? `<div class="coupon-memo">${coupon.memo}</div>` : ''}
+                <dl class="coupon-meta-list">
+                    <dt>발행인</dt><dd>${coupon.issued_by || '-'}</dd>
+                    <dt>발행</dt><dd>${formatDate(coupon.created_at)}</dd>
+                    ${coupon.is_used ? `<dt>사용</dt><dd class="meta-used">${formatDate(coupon.used_at)}</dd>` : ''}
+                </dl>
             </div>
-            <div class="coupon-status ${coupon.is_used ? 'status-used' : 'status-unused'}">
-                ${coupon.is_used ? '사용완료' : '미사용'}
-            </div>
-            <button class="btn-copy" onclick="copyCouponLink('${coupon.id}')">
-                링크 복사
-            </button>
+            <span class="coupon-status ${coupon.is_used ? 'status-used' : 'status-unused'}">${coupon.is_used ? '사용완료' : '미사용'}</span>
+            <button class="btn-copy" onclick="copyCouponLink('${coupon.id}')">링크 복사</button>
         </div>
     `).join('');
 
