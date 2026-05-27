@@ -1,13 +1,19 @@
 :root {
-    --coffee-brown: #8B4513;
-    --warm-cream: #F5F1EB;
-    --golden-yellow: #D4A574;
-    --dark-espresso: #3C2415;
-    --light-foam: #FDFCFA;
-    --accent-green: #2D5016;
+    --primary: #6366F1;
+    --primary-hover: #4F46E5;
+    --primary-soft: rgba(99, 102, 241, 0.1);
+    --primary-grad: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    --success: #10B981;
+    --success-hover: #059669;
     --error-red: #dc2626;
-    --shadow-soft: rgba(60, 36, 21, 0.1);
-    --shadow-medium: rgba(60, 36, 21, 0.15);
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-muted: #F3F4F6;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --border: #E9EBF0;
+    --shadow-soft: rgba(17, 24, 39, 0.05);
+    --shadow-medium: rgba(17, 24, 39, 0.12);
 }
 
 * {
@@ -18,9 +24,9 @@
 
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    background: linear-gradient(135deg, var(--warm-cream) 0%, var(--light-foam) 100%);
+    background: var(--bg);
     min-height: 100vh;
-    color: var(--dark-espresso);
+    color: var(--text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,32 +34,16 @@ body {
 }
 
 .coupon-container {
-    background: white;
+    background: var(--surface);
     border-radius: 24px;
     padding: 3rem;
-    max-width: 500px;
+    max-width: 460px;
     width: 100%;
-    box-shadow: 0 16px 64px var(--shadow-medium);
-    border: 1px solid rgba(212, 165, 116, 0.2);
+    box-shadow: 0 1px 3px var(--shadow-soft), 0 16px 48px var(--shadow-soft);
+    border: 1px solid var(--border);
     text-align: center;
     position: relative;
     overflow: hidden;
-}
-
-.coupon-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent 30%, rgba(212, 165, 116, 0.05) 50%, transparent 70%);
-    animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .coupon-content {
@@ -61,54 +51,69 @@ body {
     z-index: 1;
 }
 
+.brand-logo {
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 3.5rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: var(--primary-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    margin-bottom: 0.75rem;
+}
+
 .coffee-icon {
-    font-size: 4rem;
+    font-size: 3.5rem;
     margin-bottom: 1rem;
     display: block;
 }
 
 .coupon-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    color: var(--coffee-brown);
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .coupon-subtitle {
-    color: var(--dark-espresso);
-    opacity: 0.7;
+    color: var(--text-muted);
     margin-bottom: 2rem;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .discount-display {
-    background: linear-gradient(135deg, var(--golden-yellow), var(--coffee-brown));
+    background: var(--primary-grad);
     color: white;
     padding: 2rem;
     border-radius: 20px;
+    margin-top: 1.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 8px 32px rgba(212, 165, 116, 0.3);
+    box-shadow: 0 8px 28px rgba(99, 102, 241, 0.35);
 }
 
 .discount-number {
     font-size: 4rem;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    letter-spacing: -0.02em;
 }
 
 .discount-text {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     opacity: 0.9;
 }
 
 .coupon-info {
-    background: var(--light-foam);
+    background: var(--surface-muted);
     padding: 1.5rem;
     border-radius: 16px;
     margin-bottom: 2rem;
-    border: 1px solid rgba(212, 165, 116, 0.2);
+    border: 1px solid var(--border);
 }
 
 .info-row {
@@ -124,13 +129,12 @@ body {
 
 .info-label {
     font-weight: 500;
-    color: var(--dark-espresso);
-    opacity: 0.7;
+    color: var(--text-muted);
 }
 
 .info-value {
     font-weight: 600;
-    color: var(--coffee-brown);
+    color: var(--text);
 }
 
 .btn {
@@ -140,32 +144,34 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-family: inherit;
     width: 100%;
     margin-bottom: 1rem;
 }
 
 .btn-use {
-    background: var(--accent-green);
+    background: var(--primary-grad);
     color: white;
 }
 
 .btn-use:hover {
-    background: #1a3009;
     transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.35);
+    filter: brightness(1.04);
 }
 
 .btn-used {
-    background: var(--coffee-brown);
-    color: white;
-    opacity: 0.7;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
     cursor: not-allowed;
 }
 
 .btn-invalid {
-    background: var(--error-red);
-    color: white;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
     cursor: not-allowed;
 }
 
@@ -177,9 +183,9 @@ body {
 }
 
 .status-success {
-    background: rgba(45, 80, 22, 0.1);
-    color: var(--accent-green);
-    border: 1px solid rgba(45, 80, 22, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-hover);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .status-error {
@@ -189,9 +195,9 @@ body {
 }
 
 .status-used {
-    background: rgba(139, 69, 19, 0.1);
-    color: var(--coffee-brown);
-    border: 1px solid rgba(139, 69, 19, 0.2);
+    background: var(--primary-soft);
+    color: var(--primary-hover);
+    border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .loading {
@@ -199,14 +205,15 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    color: var(--text-muted);
 }
 
 .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid var(--golden-yellow);
+    border: 4px solid var(--primary-soft);
     border-radius: 50%;
-    border-top-color: transparent;
+    border-top-color: var(--primary);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -214,23 +221,28 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.admin-link {
-    position: fixed;
-    top: 2rem;
-    right: 2rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--coffee-brown);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    z-index: 100;
+.used-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
-.admin-link:hover {
-    background: var(--dark-espresso);
-    transform: translateY(-2px);
+.used-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 @media (max-width: 768px) {
@@ -244,12 +256,16 @@ body {
         max-width: 100%;
     }
 
+    .brand-logo {
+        font-size: 3rem;
+    }
+
     .coupon-title {
-        font-size: 1.75rem;
+        font-size: 1.35rem;
     }
 
     .coupon-subtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     .discount-display {
@@ -258,7 +274,7 @@ body {
     }
 
     .discount-number {
-        font-size: 2.5rem;
+        font-size: 2.75rem;
     }
 
     .coupon-info {
@@ -275,7 +291,6 @@ body {
 
     .info-label {
         font-size: 0.875rem;
-        opacity: 0.8;
     }
 
     .info-value {
@@ -287,11 +302,6 @@ body {
         font-size: 1.1rem;
         min-height: 48px;
     }
-
-    .status-message {
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
 }
 
 @media (max-width: 480px) {
@@ -299,12 +309,16 @@ body {
         padding: 1.5rem 1rem;
     }
 
+    .brand-logo {
+        font-size: 2.75rem;
+    }
+
     .coffee-icon {
         font-size: 3rem;
     }
 
     .coupon-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 
     .discount-display {
@@ -312,7 +326,7 @@ body {
     }
 
     .discount-number {
-        font-size: 2rem;
+        font-size: 2.25rem;
     }
 
     .discount-text {
@@ -322,32 +336,4 @@ body {
     .coupon-info {
         padding: 1rem;
     }
-
-    .info-row {
-        margin-bottom: 0.75rem;
-    }
-}
-
-.used-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--coffee-brown);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.used-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
 }

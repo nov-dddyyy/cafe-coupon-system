@@ -70,7 +70,6 @@ function showCoupon(coupon) {
     document.getElementById('discountNumber').textContent = coupon.discount_rate + '%';
     document.getElementById('friendName').textContent = coupon.friend_name;
     document.getElementById('issuedDate').textContent = formatDate(coupon.created_at);
-    document.getElementById('couponId').textContent = coupon.id;
 
     // 메모 표시
     if (coupon.memo) {
@@ -92,7 +91,7 @@ function showUnusedState() {
     statusDiv.innerHTML = `
         <div class="status-message status-success">
             <strong>✓ 사용 가능한 쿠폰입니다</strong><br>
-            아래 버튼을 눌러 쿠폰을 사용 처리하세요.
+            아래 버튼은 <strong>직원용</strong>입니다. 사용 시 직원에게 이 화면을 보여주세요.
         </div>
     `;
 
@@ -203,11 +202,12 @@ function showError(message) {
 // 날짜 포맷팅
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleString('ko-KR', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: false
     });
 }

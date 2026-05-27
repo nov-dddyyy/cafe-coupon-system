@@ -324,8 +324,8 @@ function renderCoupons() {
                 <div class="coupon-head-row">
                     <span class="coupon-discount">${coupon.discount_rate}%</span>
                     <span class="coupon-name">${coupon.friend_name}</span>
+                    ${coupon.memo ? `<span class="coupon-memo">${coupon.memo}</span>` : ''}
                 </div>
-                ${coupon.memo ? `<div class="coupon-memo">${coupon.memo}</div>` : ''}
                 <dl class="coupon-meta-list">
                     <dt>발행인</dt><dd>${coupon.issued_by || '-'}</dd>
                     <dt>발행</dt><dd>${formatDate(coupon.created_at)}</dd>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>쿠폰 사용하기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/coupon-use.css">
 </head>
@@ -23,9 +23,8 @@
 
             <!-- 쿠폰 정보 -->
             <div id="couponState" style="display: none;">
-                <div class="coffee-icon">☕</div>
-                <h1 class="coupon-title">카페 할인 쿠폰</h1>
-                <p class="coupon-subtitle">특별한 지인을 위한 할인</p>
+                <div class="brand-logo">Couler</div>
+                <h1 class="coupon-title">지인 할인 쿠폰</h1>
 
                 <div class="discount-display">
                     <div class="discount-number" id="discountNumber">10%</div>
@@ -40,10 +39,6 @@
                     <div class="info-row">
                         <span class="info-label">발행일</span>
                         <span class="info-value" id="issuedDate">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">쿠폰 번호</span>
-                        <span class="info-value" id="couponId">-</span>
                     </div>
                     <div class="info-row" id="memoRow" style="display: none;">
                         <span class="info-label">메모</span>
