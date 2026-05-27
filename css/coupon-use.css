@@ -110,7 +110,7 @@ body {
 
 .coupon-info {
     background: var(--surface-muted);
-    padding: 1.5rem;
+    padding: 1.1rem 1.25rem;
     border-radius: 16px;
     margin-bottom: 2rem;
     border: 1px solid var(--border);
@@ -120,7 +120,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.55rem;
 }
 
 .info-row:last-child {
@@ -229,15 +229,22 @@ body {
     bottom: 0;
     background: rgba(255, 255, 255, 0.92);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 0.6rem;
     z-index: 10;
-    font-size: 2.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: var(--primary);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
+}
+
+.used-overlay svg {
+    width: 3.5rem;
+    height: 3.5rem;
 }
 
 .used-overlay.show {
@@ -278,15 +285,15 @@ body {
     }
 
     .coupon-info {
-        padding: 1.25rem;
+        padding: 1rem 1.25rem;
         margin-bottom: 1.5rem;
     }
 
     .info-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.25rem;
-        margin-bottom: 1rem;
+        gap: 0.2rem;
+        margin-bottom: 0.7rem;
     }
 
     .info-label {
@@ -336,4 +343,146 @@ body {
     .coupon-info {
         padding: 1rem;
     }
+}
+
+/* 에러 상태 아이콘 (SVG) */
+.state-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.state-icon svg {
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.state-icon--error {
+    color: var(--error-red);
+}
+
+/* 사용 가능 메시지 헤드 (SVG 체크) */
+.status-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+    font-size: 1.15rem;
+}
+
+.status-head svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+}
+
+/* 직원 비밀번호 모달 */
+.pw-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 1000;
+}
+
+.pw-modal.show {
+    display: flex;
+}
+
+.pw-box {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 2rem 1.75rem;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(17, 24, 39, 0.25);
+}
+
+.pw-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+}
+
+.pw-icon svg {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.pw-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+}
+
+.pw-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+
+.pw-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 1.1rem;
+    text-align: center;
+    letter-spacing: 0.3em;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.pw-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.pw-error {
+    display: none;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--error-red);
+}
+
+.pw-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.pw-btn {
+    flex: 1;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.pw-cancel {
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.pw-confirm {
+    background: var(--primary-grad);
+    color: white;
+}
+
+.pw-confirm:hover {
+    filter: brightness(1.05);
 }

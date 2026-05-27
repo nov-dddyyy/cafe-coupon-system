@@ -6,12 +6,15 @@
     <title>쿠폰 사용하기</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/coupon-use.css">
+    <link rel="stylesheet" href="css/coupon-use.css?v=4">
 </head>
 <body>
    <div class="coupon-container">
         <div class="used-overlay" id="usedOverlay">
-            ✓ 사용 완료
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span>사용 완료</span>
         </div>
 
         <div class="coupon-content">
@@ -40,10 +43,6 @@
                         <span class="info-label">발행일</span>
                         <span class="info-value" id="issuedDate">-</span>
                     </div>
-                    <div class="info-row" id="memoRow" style="display: none;">
-                        <span class="info-label">메모</span>
-                        <span class="info-value" id="memo">-</span>
-                    </div>
                 </div>
 
                 <div id="statusMessage"></div>
@@ -62,7 +61,11 @@
 
             <!-- 에러 상태 -->
             <div id="errorState" style="display: none;">
-                <div class="coffee-icon">❌</div>
+                <div class="state-icon state-icon--error">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+                    </svg>
+                </div>
                 <h1 class="coupon-title">쿠폰을 찾을 수 없습니다</h1>
                 <p class="coupon-subtitle">잘못된 쿠폰 링크이거나 만료된 쿠폰입니다</p>
 
@@ -77,6 +80,25 @@
         </div>
     </div>
 
-    <script src="js/coupon-use.js"></script>
+    <!-- 직원 비밀번호 모달 -->
+    <div class="pw-modal" id="pwModal">
+        <div class="pw-box">
+            <div class="pw-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h2 class="pw-title">직원 확인</h2>
+            <p class="pw-desc">사용 처리하려면 직원 비밀번호를 입력하세요.</p>
+            <input type="password" inputmode="numeric" pattern="[0-9]*" class="pw-input" id="pwInput" placeholder="4자리 숫자" maxlength="4">
+            <p class="pw-error" id="pwError">비밀번호가 올바르지 않습니다.</p>
+            <div class="pw-actions">
+                <button type="button" class="pw-btn pw-cancel" id="pwCancel">취소</button>
+                <button type="button" class="pw-btn pw-confirm" id="pwConfirm">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/coupon-use.js?v=4"></script>
 </body>
 </html>

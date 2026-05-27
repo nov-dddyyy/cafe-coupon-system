@@ -9,7 +9,49 @@ let currentCoupon = null;
 // DOM 로드 완료 후 실행
 document.addEventListener('DOMContentLoaded', function() {
     loadCoupon();
+    setupPwModal();
 });
+
+// 직원 비밀번호
+const STAFF_PASSWORD = '0000';
+
+function setupPwModal() {
+    document.getElementById('pwConfirm').addEventListener('click', submitPw);
+    document.getElementById('pwCancel').addEventListener('click', closePwModal);
+    document.getElementById('pwInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitPw();
+    });
+    document.getElementById('pwInput').addEventListener('input', function() {
+        // 숫자만, 최대 4자리
+        this.value = this.value.replace(/\D/g, '').slice(0, 4);
+        document.getElementById('pwError').style.display = 'none';
+    });
+    document.getElementById('pwModal').addEventListener('click', e => {
+        if (e.target.id === 'pwModal') closePwModal();
+    });
+}
+
+function openPwModal() {
+    const input = document.getElementById('pwInput');
+    input.value = '';
+    document.getElementById('pwError').style.display = 'none';
+    document.getElementById('pwModal').classList.add('show');
+    input.focus();
+}
+
+function closePwModal() {
+    document.getElementById('pwModal').classList.remove('show');
+}
+
+function submitPw() {
+    const pw = document.getElementById('pwInput').value;
+    if (pw !== STAFF_PASSWORD) {
+        document.getElementById('pwError').style.display = 'block';
+        return;
+    }
+    closePwModal();
+    processUse();
+}
 
 // 쿠폰 정보 로드
 async function loadCoupon() {
@@ -71,11 +113,7 @@ function showCoupon(coupon) {
     document.getElementById('friendName').textContent = coupon.friend_name;
     document.getElementById('issuedDate').textContent = formatDate(coupon.created_at);
 
-    // 메모 표시
-    if (coupon.memo) {
-        document.getElementById('memo').textContent = coupon.memo;
-        document.getElementById('memoRow').style.display = 'flex';
-    }
+    // 메모는 관리자 페이지에서만 표시 (사용 링크에는 노출하지 않음)
 
     // 사용 상태에 따른 UI 업데이트
     if (coupon.is_used) {
@@ -90,7 +128,12 @@ function showUnusedState() {
     const statusDiv = document.getElementById('statusMessage');
     statusDiv.innerHTML = `
         <div class="status-message status-success">
-            <strong>✓ 사용 가능한 쿠폰입니다</strong><br>
+            <strong class="status-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+                </svg>
+                사용 가능한 쿠폰입니다
+            </strong>
             아래 버튼은 <strong>직원용</strong>입니다. 사용 시 직원에게 이 화면을 보여주세요.
         </div>
     `;
@@ -128,32 +171,26 @@ function showUsedState(coupon) {
     document.getElementById('usedOverlay').classList.add('show');
 }
 
-// 쿠폰 사용 처리
-async function useCoupon() {
+// 쿠폰 사용하기 클릭 → 직원 비밀번호 모달
+function useCoupon() {
+    if (!currentCoupon) return;
+    openPwModal();
+}
+
+// 비밀번호 확인 후 실제 사용 처리
+async function processUse() {
     if (!currentCoupon) return;
 
+    const button = document.getElementById('useButton');
     try {
-        // 확인 대화상자
-        if (!confirm(`${currentCoupon.friend_name}님의 ${currentCoupon.discount_rate}% 할인 쿠폰을 사용하시겠습니까?`)) {
-            return;
-        }
-
-        // 버튼 비활성화
-        const button = document.getElementById('useButton');
         button.disabled = true;
         button.textContent = '처리 중...';
 
-        // 사용 시간 설정
         const now = new Date().toISOString();
         currentCoupon.is_used = true;
         currentCoupon.used_at = now;
 
-        // Supabase 업데이트 (실제 연결 시)
-        // const { data, error } = await supabase
-        //     .from('coupons')
-        //     .update({ is_used: true, used_at: now })
-        //     .eq('id', currentCoupon.id);
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
             .from('coupons')
             .update({ is_used: true, used_at: now })
             .eq('id', currentCoupon.id);
@@ -161,32 +198,17 @@ async function useCoupon() {
         if (error) {
             console.error('쿠폰 업데이트 에러:', error);
             alert('쿠폰 사용 처리 중 오류가 발생했습니다.');
+            button.disabled = false;
+            button.textContent = '쿠폰 사용하기';
             return;
         }
 
-        // 임시로 로컬 스토리지 업데이트
-        // const savedCoupons = localStorage.getItem('cafeCoupons');
-        // const coupons = savedCoupons ? JSON.parse(savedCoupons) : [];
-        // const index = coupons.findIndex(c => c.id === currentCoupon.id);
-        // if (index !== -1) {
-        //     coupons[index] = currentCoupon;
-        //     localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
-        // }
-
-        // 성공 처리
+        // 성공 처리 (사용 완료 오버레이 표시)
         showUsedState(currentCoupon);
-
-        // 성공 알림
-        setTimeout(() => {
-            alert(`쿠폰이 성공적으로 사용되었습니다!\n\n할인율: ${currentCoupon.discount_rate}%\n고객: ${currentCoupon.friend_name}`);
-        }, 500);
 
     } catch (error) {
         console.error('쿠폰 사용 에러:', error);
         alert('쿠폰 사용 처리 중 오류가 발생했습니다.');
-
-        // 버튼 복원
-        const button = document.getElementById('useButton');
         button.disabled = false;
         button.textContent = '쿠폰 사용하기';
     }
