@@ -8,6 +8,9 @@ let selectedDiscount = 0;
 let selectedIssuer = '';
 let coupons = [];
 
+// 한 번에 발행 가능한 최대 지인 수
+const MAX_FRIENDS = 20;
+
 // 목록 검색/필터/페이지네이션 상태
 const PAGE_SIZE = 10;
 let currentPage = 1;
@@ -61,6 +64,31 @@ function initializeEventListeners() {
     // 쿠폰 발행 폼
     document.getElementById('couponForm').addEventListener('submit', handleCouponSubmit);
 
+    // 지인 행 삭제 (리스트 위임)
+    document.getElementById('friendNamesList').addEventListener('click', function(e) {
+        const btn = e.target.closest('.row-btn--remove');
+        if (!btn) return;
+        if (this.querySelectorAll('.friend-row').length <= 1) return;
+        btn.parentElement.remove();
+        updateRowButtons();
+    });
+
+    // 지인 추가 (리스트 아래 버튼)
+    document.getElementById('addFriendBtn').addEventListener('click', function() {
+        const list = document.getElementById('friendNamesList');
+        if (list.querySelectorAll('.friend-row').length >= MAX_FRIENDS) {
+            showToast(`한 번에 최대 ${MAX_FRIENDS}명까지 발행할 수 있습니다.`, 'error');
+            return;
+        }
+        const row = createFriendRow();
+        list.appendChild(row);
+        updateRowButtons();
+        row.querySelector('input').focus();
+    });
+
+    // 초기 상태 반영 (행 1개면 − 숨김)
+    updateRowButtons();
+
     // 탭 전환
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -113,20 +141,27 @@ function doSearch() {
     renderCoupons();
 }
 
-// 쿠폰 발행 처리
+// 쿠폰 발행 처리 (지인 여러 명 동시 발행 지원)
 async function handleCouponSubmit(e) {
     e.preventDefault();
 
-    const friendName = document.getElementById('friendName').value.trim();
     const memo = document.getElementById('memo').value.trim();
+    const names = Array.from(document.querySelectorAll('.friend-name-input'))
+        .map(i => i.value.trim())
+        .filter(Boolean);
 
     if (!selectedIssuer) {
         showToast('발행인을 선택해주세요.', 'error');
         return;
     }
 
-    if (!friendName) {
+    if (names.length === 0) {
         showToast('지인 이름을 입력해주세요.', 'error');
+        return;
+    }
+
+    if (names.length > MAX_FRIENDS) {
+        showToast(`한 번에 최대 ${MAX_FRIENDS}명까지 발행할 수 있습니다.`, 'error');
         return;
     }
 
@@ -141,25 +176,19 @@ async function handleCouponSubmit(e) {
     }
 
     try {
-        const couponId = generateCouponId();
-        const couponData = {
-            id: couponId,
-            friend_name: friendName,
+        const now = new Date().toISOString();
+        const couponBatch = names.map(name => ({
+            id: generateCouponId(),
+            friend_name: name,
             memo: memo,
             discount_rate: selectedDiscount,
             issued_by: selectedIssuer,
             is_used: false,
-            created_at: new Date().toISOString(),
+            created_at: now,
             used_at: null
-        };
+        }));
 
-        // Supabase에 저장 (실제 연결 시)
-        // const { data, error } = await supabase
-        //     .from('coupons')
-        //     .insert([couponData]);
-        const { data, error } = await supabaseClient
-            .from('coupons')
-            .insert([couponData]);
+        const { error } = await supabaseClient.from('coupons').insert(couponBatch);
 
         if (error) {
             console.error('Supabase 에러:', error);
@@ -167,33 +196,17 @@ async function handleCouponSubmit(e) {
             return;
         }
 
-        // 임시로 로컬 저장
-        // coupons.push(couponData);
-        // localStorage.setItem('cafeCoupons', JSON.stringify(coupons));
-
-        // 쿠폰 URL 생성
-        const couponUrl = `${window.location.origin}/coupon-use.html?id=${couponId}`;
-
-        // 성공 메시지와 함께 URL 표시
-        showCouponCreated(friendName, selectedDiscount, couponUrl);
+        // 성공 메시지
+        if (couponBatch.length === 1) {
+            const c = couponBatch[0];
+            const url = `${window.location.origin}/coupon-use.html?id=${c.id}`;
+            showCouponCreated(c.friend_name, selectedDiscount, url);
+        } else {
+            showToast(`${couponBatch.length}명에게 ${selectedDiscount}% 쿠폰을 발행했습니다.`);
+        }
 
         // 폼 초기화
-        document.getElementById('couponForm').reset();
-        document.getElementById('friendName').value = '';
-        document.getElementById('memo').value = '';
-
-        // 할인율 선택 초기화 (선택 없음)
-        selectedDiscount = 0;
-        document.querySelectorAll('.discount-option').forEach(o => o.classList.remove('selected'));
-        const customInput = document.getElementById('customDiscount');
-        customInput.value = '';
-        customInput.classList.remove('input-error');
-        document.getElementById('discountStepper').style.display = 'none';
-        document.getElementById('customDiscountHint').style.display = 'none';
-
-        // 발행인 선택 초기화
-        selectedIssuer = '';
-        document.querySelectorAll('.issuer-option').forEach(o => o.classList.remove('selected'));
+        resetIssueForm();
 
         // 목록 새로고침
         loadCoupons();
@@ -202,6 +215,61 @@ async function handleCouponSubmit(e) {
         console.error('쿠폰 발행 에러:', error);
         showToast('쿠폰 발행 중 오류가 발생했습니다.', 'error');
     }
+}
+
+// 발행 폼 초기화 (지인 행 1개로 복원, 선택 해제 등)
+function resetIssueForm() {
+    document.getElementById('couponForm').reset();
+
+    // 지인 이름 행 1개로 복원
+    const list = document.getElementById('friendNamesList');
+    list.innerHTML = '';
+    list.appendChild(createFriendRow());
+    updateRowButtons();
+
+    // 할인율 선택 초기화
+    selectedDiscount = 0;
+    document.querySelectorAll('.discount-option').forEach(o => o.classList.remove('selected'));
+    const customInput = document.getElementById('customDiscount');
+    customInput.value = '';
+    customInput.classList.remove('input-error');
+    document.getElementById('discountStepper').style.display = 'none';
+    document.getElementById('customDiscountHint').style.display = 'none';
+
+    // 발행인 선택 초기화
+    selectedIssuer = '';
+    document.querySelectorAll('.issuer-option').forEach(o => o.classList.remove('selected'));
+}
+
+// 행/추가버튼 상태 갱신: 행 1개면 − 숨김, 최대 도달 시 + 비활성
+function updateRowButtons() {
+    const rows = document.querySelectorAll('.friend-row');
+    rows.forEach(r => {
+        const rm = r.querySelector('.row-btn--remove');
+        if (rm) rm.style.display = rows.length > 1 ? '' : 'none';
+    });
+    const addBtn = document.getElementById('addFriendBtn');
+    if (addBtn) addBtn.disabled = rows.length >= MAX_FRIENDS;
+}
+
+// 지인 이름 행 생성 (모두 − 버튼; 행 1개일 때만 숨김)
+function createFriendRow() {
+    const row = document.createElement('div');
+    row.className = 'friend-row';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'form-input friend-name-input';
+    input.placeholder = '예: 김민수';
+    row.appendChild(input);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'row-btn row-btn--remove';
+    btn.setAttribute('aria-label', '삭제');
+    btn.textContent = '−';
+    row.appendChild(btn);
+    return row;
 }
 
 // 쿠폰 ID 생성

@@ -110,6 +110,7 @@ function showCoupon(coupon) {
 
     // 기본 정보 설정
     document.getElementById('discountNumber').textContent = coupon.discount_rate + '%';
+    document.getElementById('issuedBy').textContent = coupon.issued_by || '-';
     document.getElementById('friendName').textContent = coupon.friend_name;
     document.getElementById('issuedDate').textContent = formatDate(coupon.created_at);
 
