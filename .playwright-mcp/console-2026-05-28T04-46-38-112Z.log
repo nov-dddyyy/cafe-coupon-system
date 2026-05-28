@@ -1,0 +1,4 @@
+[     166ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:9000/coupon-use.html?id=debug-mock:0
+[     242ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://localhost:9000/favicon.ico:0
+[     553ms] [ERROR] Failed to load resource: the server responded with a status of 406 () @ https://exbzhedywnkkfshantae.supabase.co/rest/v1/coupons?select=*&id=eq.debug-mock:0
+[     554ms] [ERROR] 쿠폰 조회 에러: {code: PGRST116, details: The result contains 0 rows, hint: null, message: Cannot coerce the result to a single JSON object} @ http://localhost:9000/js/coupon-use.js?v=5:79

@@ -112,7 +112,7 @@ function showCoupon(coupon) {
     document.getElementById('discountNumber').textContent = coupon.discount_rate + '%';
     document.getElementById('issuedBy').textContent = coupon.issued_by || '-';
     document.getElementById('friendName').textContent = coupon.friend_name;
-    document.getElementById('issuedDate').textContent = formatDate(coupon.created_at);
+    document.getElementById('issuedDate').textContent = formatDateOnly(coupon.created_at);
 
     // 메모는 관리자 페이지에서만 표시 (사용 링크에는 노출하지 않음)
 
@@ -232,5 +232,14 @@ function formatDate(dateString) {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
+    });
+}
+
+function formatDateOnly(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
 }
